@@ -101,42 +101,6 @@ X3F_STATUS x3f_huff_append_node(struct x3f_huff_leaf *root,
     return X3F_SUCCESS;
 }
 
-
-
-#ifdef _DEBUG
-static char *display_code(int length, uint32_t code, char *buffer)
-{
-    int i;
-
-    for (i=0; i<length; i++) {
-        int pos = length - i - 1;
-        buffer[i] = ((code>>pos)&1) == 0 ? '0' : '1';
-    }
-
-    buffer[i] = 0;
-
-    return buffer;
-}
-
-void print_huffman_tree(struct x3f_huff_leaf *t, int length, uint32_t code)
-{
-    char buf1[100];
-    char buf2[100];
-
-    printf("%*s (%s,%s) %s (%s)\n",
-            length, length < 1 ? "-" : (code&1) ? "1" : "0",
-            t->branch[0]==NULL ? "-" : "0",
-            t->branch[1]==NULL ? "-" : "1",
-            t->leaf==0xffffffff ? "-" : (sprintf(buf1, "%x", t->leaf),buf1),
-            display_code(length, code, buf2));
-
-    code = code << 1;
-    if (t->branch[0]) print_huffman_tree(t->branch[0], length+1, code+0);
-    if (t->branch[1]) print_huffman_tree(t->branch[1], length+1, code+1);
-}
-
-#endif
-
 int x3f_huff_get_value(struct x3f_huff_leaf *root,
                        struct biterator *bit)
 {

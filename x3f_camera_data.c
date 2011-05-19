@@ -115,8 +115,6 @@ static X3F_STATUS x3f_type4_camf_decrypt(struct x3f_camf *camf,
     } while (size != 0);
 
 
-    print_huffman_tree(camf->huff_root, 0, 0);
-
     return X3F_SUCCESS;
 }
 

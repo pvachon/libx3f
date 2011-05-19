@@ -65,10 +65,6 @@ static X3F_STATUS x3f_huff_read_table(struct x3f_file *fp,
         entry_count++;
     } while (size != 0);
 
-#ifdef _DEBUG
-    print_huffman_tree(inf->root, 0, 0);
-#endif
-
     return X3F_SUCCESS;
 }
 
@@ -197,7 +193,6 @@ static X3F_STATUS x3f_huff_read_image(struct x3f_file *fp, struct x3f_image *img
     for (plane = 0; plane < 3; plane++) {
         uint8_t *encoded = NULL;
         uint32_t plane_size = ((inf->plane_size[plane] + 15)/16) * 16;
-        printf("plane = %d\n", plane);
         cur = &((uint16_t*)buf)[plane * img->rows * img->cols];
 
         encoded = (uint8_t*)malloc(plane_size);
