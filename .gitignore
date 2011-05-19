@@ -1,0 +1,9 @@
+*.swp
+*.swo
+*.so
+*.x3f
+*.X3F
+*.o
+tags
+hexdump
+x3finfo
