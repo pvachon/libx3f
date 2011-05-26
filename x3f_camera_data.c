@@ -38,6 +38,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#ifdef _DEBUG
 static void dump_16(uint8_t *bytes, int count)
 {
     int i;
@@ -72,6 +73,7 @@ static void dump_buf(uint8_t *bytes, size_t length)
         dump_16(&bytes[off], (unsigned)(length - off));
     }
 }
+#endif
 
 static X3F_STATUS x3f_old_camf_decrypt(struct x3f_camf *camf,
                                        uint8_t *data,
@@ -90,10 +92,28 @@ static X3F_STATUS x3f_old_camf_decrypt(struct x3f_camf *camf,
         data[i] ^= ((((key << 8) - val) >> 1) + val) >> 17;
     }
 
+#ifdef _DEBUG
     dump_buf(data, length);
+#endif
 
     return X3F_SUCCESS;
 }
+
+#ifdef _DEBUG
+static void x3f_dump_camf_data(uint8_t *data, size_t length)
+{
+    FILE *fp = fopen("camf.dat", "w+");
+
+    if (fp == NULL) {
+        X3F_TRACE("Unable to open camf.dat for dumping!\n");
+        return;
+    }
+
+    fwrite(data, length, 1, fp);
+
+    fclose(fp);
+}
+#endif
 
 /* Yes, this is for real. Don't ask me why, I don't want to know. */
 static X3F_STATUS x3f_type4_camf_decrypt(struct x3f_camf *camf,
@@ -103,6 +123,9 @@ static X3F_STATUS x3f_type4_camf_decrypt(struct x3f_camf *camf,
     unsigned size, val;
     size_t start = 0;
     int i = 0;
+    X3F_STATUS ret = X3F_SUCCESS;
+    uint8_t *decoded = NULL;
+    uint32_t outsize;
 
     camf->huff_root = x3f_new_huff_node();
 
@@ -114,8 +137,37 @@ static X3F_STATUS x3f_type4_camf_decrypt(struct x3f_camf *camf,
         i++;
     } while (size != 0);
 
+    outsize = (camf->block_size * camf->block_count * 3)/2;
+    decoded = (uint8_t*)calloc(1, outsize);
 
-    return X3F_SUCCESS;
+    if (decoded == NULL) {
+        return X3F_NO_MEMORY;
+    }
+
+    X3F_TRACE("Starting decoding %zd bytes from start of buffer",
+        start);
+    X3F_TRACE("Input size: %u, output size = %u\n", camf->raw_data_size,
+        outsize);
+
+    if ( (ret = x3f_decode_camf_type4(camf->huff_root,
+                                      camf->predictor,
+                                      &data[start + 4],
+                                      camf->raw_data_size,
+                                      decoded,
+                                      camf->block_size,
+                                      camf->block_count) ) < 0 )
+    {
+        X3F_TRACE("Error while decoding type4 data!\n");
+        goto done;
+    }
+
+#ifdef _DEBUG
+    x3f_dump_camf_data(decoded, outsize);
+#endif
+
+done:
+    free(decoded);
+    return ret;
 }
 
 X3F_STATUS x3f_read_camf_metadata(struct x3f_file *fp,
@@ -156,8 +208,20 @@ X3F_STATUS x3f_read_camf_metadata(struct x3f_file *fp,
 
     fp->camf->type = type;
     fp->camf->key = key;
+    fp->camf->predictor = X3F_WORD_AT(buf, 16);
+    fp->camf->block_count = X3F_WORD_AT(buf, 20);
+    fp->camf->block_size = X3F_WORD_AT(buf, 24);
+    fp->camf->raw_data_size = dirent->length - 28;
 
     X3F_TRACE("Found CAMF metadata type %u key %08x", type, key);
+
+ #ifdef _DEBUG
+    if (type == 4) {
+        X3F_TRACE("Type 4 header: %u blocks of size %u, predictor = %08x",
+            fp->camf->block_count, fp->camf->block_size,
+            (unsigned int)fp->camf->predictor);
+    }
+ #endif
 
     data = (uint8_t*)malloc(dirent->length - 28);
 
@@ -176,6 +240,7 @@ X3F_STATUS x3f_read_camf_metadata(struct x3f_file *fp,
         x3f_type4_camf_decrypt(fp->camf, data, dirent->length - 28);
         break;
     }
+
 done:
     if (data) free(data);
 

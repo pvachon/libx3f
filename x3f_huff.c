@@ -215,5 +215,55 @@ X3F_STATUS x3f_quantized_huff_decode(struct x3f_huff_leaf *root,
     return X3F_SUCCESS;
 }
 
+X3F_STATUS x3f_decode_camf_type4(struct x3f_huff_leaf *root,
+                                 unsigned predictor,
+                                 uint8_t *encoded,
+                                 size_t encoded_size,
+                                 uint8_t *decoded,
+                                 unsigned rows,
+                                 unsigned cols)
+{
+    unsigned row, col;
+    struct biterator *iter;
+    int32_t row_beg[2][2] = { { predictor, predictor },
+                              { predictor, predictor } };
+    int flip = 0;
 
+    X3F_ASSERT_ARG(root);
+    X3F_ASSERT_ARG(encoded);
+    X3F_ASSERT_ARG(decoded);
+
+    iter = x3f_new_biterator(encoded, encoded_size);
+
+    for (row = 0; row < rows; row++) {
+        int32_t val[2];
+        for (col = 0; col < cols; col++) {
+            int32_t old = col < 2 ? row_beg[row&1][col&1] :
+                val[col&1];
+            int32_t res = x3f_huff_get_value(root, iter);
+
+            if (res == -33939) {
+                X3F_TRACE("Failed at %d, %d", col, row);
+                res = 0;
+            }
+
+            old += res;
+            val[col&1] = old;
+
+            if (col < 2) row_beg[row&1][col&1] = val[col&1];
+
+            if (!flip) {
+                *decoded++ = (old >> 4) & 0xff;
+                *decoded = (old << 4) & 0xf0;
+            } else {
+                *decoded++ |= (old >> 8) & 0x0f;
+                *decoded++ = old & 0xff;
+            }
+
+            flip = !flip;
+        }
+    }
+
+    return X3F_SUCCESS;
+}
 

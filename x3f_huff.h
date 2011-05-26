@@ -71,5 +71,13 @@ X3F_STATUS x3f_quantized_huff_decode(struct x3f_huff_leaf *root,
                                      unsigned rows,
                                      unsigned cols);
 
+X3F_STATUS x3f_decode_camf_type4(struct x3f_huff_leaf *root,
+                                 unsigned predictor,
+                                 uint8_t *encoded,
+                                 size_t encoded_size,
+                                 uint8_t *decoded,
+                                 unsigned rows,
+                                 unsigned cols);
+
 #endif /* __INCLUDE_X3F_HUFF_H__ */
 

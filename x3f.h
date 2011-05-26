@@ -13,6 +13,7 @@ typedef int X3F_STATUS;
 #define X3F_CANT_SEEK       -5
 #define X3F_RANGE           -6
 #define X3F_UNSUPP_MODE     -7 /* Unsupported image mode */
+#define X3F_NOT_FOUND       -8
 #define X3F_UNSPECIFIED    -99
 
 X3F_STATUS x3f_initialize();

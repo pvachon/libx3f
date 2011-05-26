@@ -2,6 +2,7 @@
 #define __INCLUDE_X3F_PRIV_H__
 
 #include <x3f.h>
+#include <x3f_metatree.h>
 
 #include <stdint.h>
 #include <stdio.h>
@@ -76,12 +77,15 @@ struct x3f_camf {
     uint16_t ver_minor;
 
     uint32_t type;
+    uint32_t raw_data_size;
+
+    struct x3f_metatree_node *meta;
 
     /* For older data */
     uint32_t key;
 
     /* For Type 4 CAMF sections */
-    uint32_t bias;
+    uint32_t predictor;
     unsigned block_count;
     unsigned block_size;
     struct x3f_huff_leaf *huff_root;
@@ -109,7 +113,7 @@ struct x3f_file {
     printf(x, ##__VA_ARGS__)
 
 #define X3F_TRACE(x, ...) \
-    printf("x3f: %s:%d " x "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+    fprintf(stderr, "x3f: %s:%d " x "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
 #define X3F_ERROR(x, d, ...) \
     X3F_TRACE("error (%d): " x, d, ##__VA_ARGS__)
