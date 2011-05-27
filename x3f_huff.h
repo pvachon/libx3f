@@ -79,5 +79,7 @@ X3F_STATUS x3f_decode_camf_type4(struct x3f_huff_leaf *root,
                                  unsigned rows,
                                  unsigned cols);
 
+X3F_STATUS x3f_release_huff_tree(struct x3f_huff_leaf *root);
+
 #endif /* __INCLUDE_X3F_HUFF_H__ */
 

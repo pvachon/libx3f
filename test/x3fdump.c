@@ -33,11 +33,33 @@
 #include <stdint.h>
 #include <string.h>
 
-void dump_buf(const char *file, uint16_t *buf, size_t bytes,
+#define MAT_GET(mat, row, col) \
+    ((mat)[(row) * 3 + (col)])
+
+void mat_mul(float matrix[9], int16_t *pixels)
+{
+    int i, j, k;
+
+    float pin[3] = { pixels[0], pixels[1], pixels[2] };
+
+    float pout[3] = { 0.0f, 0.0f, 0.0f };
+
+    for (i = 0; i < 3; i++) {
+        for (j = 0; j < 3; j++) {
+            pout[i] += pin[j] * MAT_GET(matrix, i, j);
+        }
+    }
+
+    pixels[0] = (int16_t)(pout[0] + 0.5f);
+    pixels[1] = (int16_t)(pout[1] + 0.5f);
+    pixels[2] = (int16_t)(pout[2] + 0.5f);
+}
+
+void dump_buf(const char *file, float matrix[9], uint16_t *buf, size_t bytes,
     int cols, int rows)
 {
     FILE *fp;
-    uint16_t *buf_out, *outbuf;
+    uint16_t *buf_out, *outbuf, *pix;
     size_t i, j;
     size_t stride = bytes / 6;
 
@@ -51,10 +73,12 @@ void dump_buf(const char *file, uint16_t *buf, size_t bytes,
     }
 
     for (i = 0; i < rows*cols; i++) {
+        pix = buf_out;
         for (j = 0; j < 3; ++j) {
             *buf_out = buf[(rows * cols * j) + i];
             buf_out++;
         }
+        mat_mul(matrix, pix);
     }
 
     printf("\nDumping to %s\n", file);
@@ -75,8 +99,11 @@ void dump_buf(const char *file, uint16_t *buf, size_t bytes,
 int main(int argc, char *argv[])
 {
     struct x3f_file *fp = NULL;
-    unsigned rows, cols;
+    unsigned rows, cols, cp2_size;
     uint16_t *buf = NULL;
+    float cp2_buf[9];
+    int i, j;
+
 
     if (3 > argc) {
         printf("usage: %s [filename] [outname]\n", argv[0]);
@@ -100,8 +127,26 @@ int main(int argc, char *argv[])
     memset(buf, 0, cols * rows * 3 * 2);
 
     x3f_read_image_data(fp, 1, 0, 0, cols, rows, buf);
+    /* Get CP2_Matrix */
+    if (x3f_get_array(fp, "CP2_Matrix", NULL, &cp2_size) != X3F_SUCCESS) {
+        printf("Failed to get CP2_Matrix array!");
+        goto done;
+    } else {
+        printf("CP2_Matrix size = %u bytes\n", cp2_size);
+    }
 
-    dump_buf(argv[2], buf, cols * rows * 3 * 2, cols, rows);
+    if (x3f_get_array(fp, "CP2_Matrix", cp2_buf, NULL) != X3F_SUCCESS) {
+        printf("Could not get CP2_Matrix array values!");
+    } else {
+        for (i = 0; i < 3; i++) {
+            printf("[ ");
+            for (j = 0; j < 3; j++) {
+                printf("%f ", (double)(cp2_buf[i * 3 + j]));
+            }
+            printf("]\n");
+        }
+    }
+    dump_buf(argv[2], cp2_buf, buf, cols * rows * 3 * 2, cols, rows);
     free(buf);
 
 done:

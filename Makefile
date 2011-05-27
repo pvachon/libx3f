@@ -13,15 +13,15 @@ OBJ=x3f.o x3f_info.o x3f_fm.o x3f_dir.o x3f_utf16.o x3f_image.o \
 CFLAGS+=-Wall -I.
 CC=gcc
 
-CFLAGS+=-D_DEBUG -O0 -g
-#CFLAGS+=-O2 -g
+#CFLAGS+=-D_DEBUG -O0 -g
+CFLAGS+=-O2 -g
 
 TARGET=libx3f
 
 LDFLAGS+=-shared -o $(TARGET).so
 
 
-PHONY := all clean
+PHONY := all clean tests
 
 all: $(TARGET).so
 
@@ -31,7 +31,11 @@ $(TARGET).so: $(OBJ)
 .c.o:
 	$(CC) $(CFLAGS) -c $<
 
+tests:
+	cd test; $(MAKE)
+
 clean:
 	$(RM) $(OBJ)
 	$(RM) $(TARGET).so
+	cd test; $(MAKE)
 

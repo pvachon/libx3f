@@ -54,8 +54,10 @@ int main(int argc, char *argv[])
     unsigned cols, rows, rotation, mark, maj, min;
     unsigned char id[16];
     char white_bal[32];
-    int i;
+    int i, j;
     unsigned subimages;
+    unsigned cp2_size;
+    float cp2_buf[9];
 
     progname = argv[0];
 
@@ -111,6 +113,27 @@ int main(int argc, char *argv[])
         else
             printf("\t\tSubimage is of an unsupported type.\n");
     }
+
+    /* Get CP2_Matrix */
+    if (x3f_get_array(fp, "CP2_Matrix", NULL, &cp2_size) != X3F_SUCCESS) {
+        printf("Failed to get CP2_Matrix array!");
+    } else {
+        printf("CP2_Matrix size = %u bytes\n", cp2_size);
+    }
+
+    if (x3f_get_array(fp, "CP2_Matrix", cp2_buf, NULL) != X3F_SUCCESS) {
+        printf("Could not get CP2_Matrix array values!");
+    } else {
+        for (i = 0; i < 3; i++) {
+            printf("[ ");
+            for (j = 0; j < 3; j++) {
+                printf("%f ", (double)(cp2_buf[i * 3 + j]));
+            }
+            printf("]\n");
+        }
+    }
+
+    printf("Cleaning up\n");
 
     x3f_close(fp);
 

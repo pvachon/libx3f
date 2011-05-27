@@ -267,3 +267,8 @@ X3F_STATUS x3f_decode_camf_type4(struct x3f_huff_leaf *root,
     return X3F_SUCCESS;
 }
 
+X3F_STATUS x3f_release_huff_tree(struct x3f_huff_leaf *root)
+{
+	return X3F_SUCCESS;
+}
+

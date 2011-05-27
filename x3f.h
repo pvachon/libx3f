@@ -14,6 +14,7 @@ typedef int X3F_STATUS;
 #define X3F_RANGE           -6
 #define X3F_UNSUPP_MODE     -7 /* Unsupported image mode */
 #define X3F_NOT_FOUND       -8
+#define X3F_NOT_INITIALIZED -9
 #define X3F_UNSPECIFIED    -99
 
 X3F_STATUS x3f_initialize();
@@ -60,5 +61,18 @@ X3F_STATUS x3f_read_image_data(struct x3f_file *fp,
                                unsigned width,
                                unsigned height,
                                void *buf);
+
+#define X3F_TYPE_FLOAT  0x3
+
+X3F_STATUS x3f_get_array(struct x3f_file *fp,
+                         const char *array_name,
+                         void *buf,
+                         unsigned *size);
+
+X3F_STATUS x3f_query_array_attribs(struct x3f_file *fp,
+                                   const char *array_name,
+                                   unsigned *dims,
+                                   const unsigned **dim_sizes,
+                                   unsigned *type);
 
 #endif /* __INCLUDE_X3F_H__ */

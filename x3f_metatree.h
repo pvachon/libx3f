@@ -9,7 +9,7 @@ struct x3f_metatree_node;
 /*
  * Predicate. Returns < 0 if less than, > 0 if greater than, or 0 if equal
  */
-typedef int (*x3f_metatree_predicate)(void *left, void *right);
+typedef int (*x3f_metatree_predicate)(const void *left, const void *right);
 typedef void (*x3f_metatree_release_node)(void *key, void *value);
 
 struct x3f_metatree;
@@ -33,7 +33,7 @@ X3F_STATUS x3f_release_metatree(struct x3f_metatree *tree);
  * Find a node in the metatree.
  */
 X3F_STATUS x3f_find_node(struct x3f_metatree *tree,
-                         void *key,
+                         const void *key,
                          void **value);
 
 X3F_STATUS x3f_insert_node(struct x3f_metatree *tree,

@@ -72,6 +72,47 @@ struct x3f_image {
 
 struct x3f_huff_leaf;
 
+/* helper used in reading all CMb* records */
+struct x3f_cmb_header {
+    union {
+        char magic[4];
+        uint32_t magic_w;
+    };
+    uint16_t ver_minor;
+    uint16_t ver_major;
+    uint32_t rec_length; /* total length of record */
+    uint32_t unknown; /* unknown */
+    uint32_t hdr_len; /* length of x3f_cmb_header including description string */
+};
+
+/* helper used in reading in CMbM records */
+struct x3f_cmbm_header {
+    uint32_t type; /* Type of the array (float, etc.) */
+    uint32_t dimension; /* Dimension of the array */
+    uint32_t data_off; /* Start of data from start of record */
+};
+
+/* Helper for dealing with CMbM record dimension descriptors */
+struct x3f_cmbm_dim_info {
+    uint32_t size; /* length of dimension, in elements */
+    uint32_t desc_off; /* offset from start of rec. to description word */
+    uint32_t stride; /* stride, in elements, to subsequent element of array */
+};
+
+struct x3f_array_record {
+    uint32_t type;
+    uint32_t num_dims;
+    uint32_t *dim_lengths;
+    uint32_t bytes;
+
+    union {
+        float *f32;
+        uint32_t *u32;
+        uint16_t *u16;
+        void *hdl;
+    };
+};
+
 struct x3f_camf {
     uint16_t ver_major;
     uint16_t ver_minor;
@@ -79,7 +120,7 @@ struct x3f_camf {
     uint32_t type;
     uint32_t raw_data_size;
 
-    struct x3f_metatree_node *meta;
+    struct x3f_metatree *meta;
 
     /* For older data */
     uint32_t key;
@@ -228,6 +269,8 @@ X3F_STATUS x3f_cleanup_all_sections(struct x3f_file *fp);
 
 X3F_STATUS x3f_read_camf_metadata(struct x3f_file *fp,
                                   struct x3f_directory_entry *dirent);
+
+X3F_STATUS x3f_free_camf(struct x3f_camf *camf);
 
 #endif /* __INCLUDE_X3F_PRIV_H__ */
 

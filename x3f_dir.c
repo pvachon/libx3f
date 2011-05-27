@@ -410,6 +410,10 @@ X3F_STATUS x3f_cleanup_all_sections(struct x3f_file *fp)
         fp->images = NULL;
     }
 
+	if (fp->camf) {
+		x3f_free_camf(fp->camf);
+	}
+
     return X3F_SUCCESS;
 }
 

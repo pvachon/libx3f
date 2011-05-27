@@ -95,7 +95,7 @@ X3F_STATUS x3f_release_metatree(struct x3f_metatree *tree)
 }
 
 X3F_STATUS x3f_find_node(struct x3f_metatree *tree,
-                         void *key,
+                         const void *key,
                          void **value)
 {
     struct x3f_metatree_node *n;
